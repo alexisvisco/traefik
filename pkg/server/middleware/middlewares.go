@@ -277,6 +277,16 @@ func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (
 		}
 	}
 
+	// RedirectRendertron
+	if config.RedirectRendertron != nil {
+		if middleware != nil {
+			return nil, badConf
+		}
+		middleware = func(next http.Handler) (http.Handler, error) {
+			return redirect.NewRedirectRendertron(next, middlewareName)
+		}
+	}
+
 	// RedirectScheme
 	if config.RedirectScheme != nil {
 		if middleware != nil {
