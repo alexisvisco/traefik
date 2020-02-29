@@ -33,7 +33,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	rawUrl := rawURL(req)
 
 	if crawlers.MatchString(userAgent) && !exceptions.MatchString(rawUrl) {
-		parsedUrl, err := url.Parse("http://rendertron/render/" + rawUrl)
+		parsedUrl, err := url.Parse("http://rendertron:3000/render/" + rawUrl)
 		if err != nil {
 			return
 		}
