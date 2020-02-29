@@ -27,7 +27,7 @@ type Middleware struct {
 	Errors             *ErrorPage          `json:"errors,omitempty" toml:"errors,omitempty" yaml:"errors,omitempty"`
 	RateLimit          *RateLimit          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty" yaml:"rateLimit,omitempty"`
 	RedirectRegex      *RedirectRegex      `json:"redirectRegex,omitempty" toml:"redirectRegex,omitempty" yaml:"redirectRegex,omitempty"`
-	RedirectRendertron *RedirectRendertron `json:"redirectRegex,omitempty" toml:"redirectRegex,omitempty" yaml:"redirectRegex,omitempty"`
+	RedirectRendertron *RedirectRendertron `json:"redirectRendertron,omitempty" toml:"redirectRendertron,omitempty" yaml:"redirectRendertron,omitempty"`
 	RedirectScheme     *RedirectScheme     `json:"redirectScheme,omitempty" toml:"redirectScheme,omitempty" yaml:"redirectScheme,omitempty"`
 	BasicAuth          *BasicAuth          `json:"basicAuth,omitempty" toml:"basicAuth,omitempty" yaml:"basicAuth,omitempty"`
 	DigestAuth         *DigestAuth         `json:"digestAuth,omitempty" toml:"digestAuth,omitempty" yaml:"digestAuth,omitempty"`

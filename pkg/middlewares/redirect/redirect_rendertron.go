@@ -1,6 +1,7 @@
 package redirect
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -8,7 +9,13 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/vulcand/oxy/utils"
 
+	"github.com/containous/traefik/v2/pkg/log"
+	"github.com/containous/traefik/v2/pkg/middlewares"
 	"github.com/containous/traefik/v2/pkg/tracing"
+)
+
+const (
+	typeRendertronName = "RedirectRendertron"
 )
 
 var crawlers = regexp.MustCompile("baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|googlebot|bingbot|discordbot|whatsapp")
@@ -21,6 +28,10 @@ type RedirectRendertron struct {
 }
 
 func NewRedirectRendertron(next http.Handler, name string) (*RedirectRendertron, error) {
+
+	logger := log.FromContext(middlewares.GetLoggerCtx(context.Background(), name, typeRendertronName))
+	logger.Debug("Creating middleware")
+
 	return &RedirectRendertron{next: next, errHandler: utils.DefaultHandler, name: name}, nil
 }
 
