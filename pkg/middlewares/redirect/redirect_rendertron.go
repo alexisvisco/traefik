@@ -51,6 +51,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		parsedUrl, err := url.Parse(rendertronUrl)
 		if err != nil {
+			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
 
@@ -59,7 +60,6 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 			permanent: false,
 		}
 
-		r.errHandler.ServeHTTP(rw, req, err)
 		handler.ServeHTTP(rw, req)
 	} else {
 		r.next.ServeHTTP(rw, req)
