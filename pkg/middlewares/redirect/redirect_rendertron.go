@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/sirupsen/logrus"
 	"github.com/vulcand/oxy/utils"
 
 	"github.com/containous/traefik/v2/pkg/log"
@@ -44,10 +45,15 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	rawUrl := rawURL(req)
 
 	if crawlers.MatchString(userAgent) && !exceptions.MatchString(rawUrl) {
-		parsedUrl, err := url.Parse("http://rendertron:3000/render/" + rawUrl)
+
+		rendertronUrl := "http://rendertron:3000/render/http://frontend" + req.RequestURI
+		logrus.WithField("middleware", r.name).WithField("user-agent", userAgent).Info(rendertronUrl)
+
+		parsedUrl, err := url.Parse(rendertronUrl)
 		if err != nil {
 			return
 		}
+
 		handler := moveHandler{
 			location:  parsedUrl,
 			permanent: false,
