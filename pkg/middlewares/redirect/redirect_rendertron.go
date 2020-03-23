@@ -67,7 +67,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 			WithField("response-body", string(buf.Bytes())).
 			WithField("user-agent", userAgent).Info(rendertronUrl)
 
-		_, err = rw.Write()
+		_, err = rw.Write(buf.Bytes())
 		if err != nil {
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
