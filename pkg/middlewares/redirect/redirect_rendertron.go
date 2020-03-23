@@ -3,6 +3,7 @@ package redirect
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 
@@ -68,14 +69,22 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 			return
 		}
 		defer request.Body.Close()
-		logrus.
-			WithField("middleware", r.name).
-			WithField("response-body", string(buf.Bytes())).
-			WithField("user-agent", userAgent).Info(rendertronUrl)
 
-		_, err = rw.Write(buf.Bytes())
+		b, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			logrus.WithError(err).Info("rendertron is 1")
+			r.errHandler.ServeHTTP(rw, req, err)
+			return
+		}
+
+		logrus.
+			WithField("middleware", r.name).
+			WithField("response-body", string(b)).
+			WithField("user-agent", userAgent).Info(rendertronUrl)
+		_, err = rw.Write(b)
+
+		if err != nil {
+			logrus.WithError(err).Info("rendertron is 2")
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
