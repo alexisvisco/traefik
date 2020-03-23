@@ -70,7 +70,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		defer resp.Body.Close()
 
-		b, err := ioutil.ReadAll(req.Body)
+		b, err := ioutil.ReadAll(resp.Body)
 
 		if err != nil {
 			logrus.WithError(err).Info("rendertron is 1")
