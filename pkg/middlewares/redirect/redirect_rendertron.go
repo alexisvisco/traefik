@@ -49,6 +49,7 @@ func (r RedirectRendertron) GetTracingInformation() (name string, spanKind ext.S
 func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	userAgent := req.Header.Get("User-Agent")
 	rawUrl := rawURL(req)
+	logrus.Info("rendertron is alive")
 
 	if crawlers.MatchString(userAgent) && !exceptions.MatchString(rawUrl) {
 
