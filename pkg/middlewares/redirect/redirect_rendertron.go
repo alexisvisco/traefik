@@ -76,7 +76,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 	if r.crawlers.MatchString(userAgent) && !r.exceptions.MatchString(rawUrl) {
 
-		rendertronUrl := "http://rendertron:3000/render/http://" + r.config.ServiceName + req.RequestURI
+		rendertronUrl := "http://rendertron:3000/?url=http://" + r.config.ServiceName + req.RequestURI
 
 		resp, err := http.Get(rendertronUrl)
 
