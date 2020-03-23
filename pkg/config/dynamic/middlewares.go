@@ -351,6 +351,7 @@ type RedirectRegex struct {
 
 // RedirectRegex holds the redirection configuration.
 type RedirectRendertron struct {
+	ServiceName string `json:"serviceName,omitempty" toml:"serviceName,omitempty" yaml:"serviceName,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true

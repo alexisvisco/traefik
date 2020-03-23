@@ -1,15 +1,16 @@
 package redirect
 
 import (
+	"bytes"
 	"context"
 	"net/http"
-	"net/url"
 	"regexp"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/sirupsen/logrus"
 	"github.com/vulcand/oxy/utils"
 
+	"github.com/containous/traefik/v2/pkg/config/dynamic"
 	"github.com/containous/traefik/v2/pkg/log"
 	"github.com/containous/traefik/v2/pkg/middlewares"
 	"github.com/containous/traefik/v2/pkg/tracing"
@@ -26,14 +27,19 @@ type RedirectRendertron struct {
 	next       http.Handler
 	errHandler utils.ErrorHandler
 	name       string
+	config     dynamic.RedirectRendertron
 }
 
-func NewRedirectRendertron(next http.Handler, name string) (*RedirectRendertron, error) {
+func NewRedirectRendertron(next http.Handler, name string, config dynamic.RedirectRendertron) (*RedirectRendertron, error) {
 
 	logger := log.FromContext(middlewares.GetLoggerCtx(context.Background(), name, typeRendertronName))
 	logger.Debug("Creating middleware")
 
-	return &RedirectRendertron{next: next, errHandler: utils.DefaultHandler, name: name}, nil
+	if config.ServiceName == "" {
+		config.ServiceName = "frontend"
+	}
+
+	return &RedirectRendertron{next: next, errHandler: utils.DefaultHandler, name: name, config: config}, nil
 }
 
 func (r RedirectRendertron) GetTracingInformation() (name string, spanKind ext.SpanKindEnum) {
@@ -46,21 +52,28 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 	if crawlers.MatchString(userAgent) && !exceptions.MatchString(rawUrl) {
 
-		rendertronUrl := "http://rendertron:3000/render/http://frontend" + req.RequestURI
-		logrus.WithField("middleware", r.name).WithField("user-agent", userAgent).Info(rendertronUrl)
+		rendertronUrl := "http://rendertron:3000/render/http://" + r.config.ServiceName + req.RequestURI
 
-		parsedUrl, err := url.Parse(rendertronUrl)
+		buf := bytes.NewBufferString("")
+		request, err := http.NewRequest("GET", rendertronUrl, buf)
+
+		if err != nil {
+			r.errHandler.ServeHTTP(rw, req, err)
+			return
+		}
+		defer request.Body.Close()
+		logrus.
+			WithField("middleware", r.name).
+			WithField("response-body", string(buf.Bytes())).
+			WithField("user-agent", userAgent).Info(rendertronUrl)
+
+		_, err = rw.Write()
 		if err != nil {
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
 
-		handler := moveHandler{
-			location:  parsedUrl,
-			permanent: false,
-		}
-
-		handler.ServeHTTP(rw, req)
+		r.next.ServeHTTP(rw, req)
 	} else {
 		r.next.ServeHTTP(rw, req)
 	}
