@@ -59,6 +59,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		request, err := http.NewRequest("GET", rendertronUrl, buf)
 
 		if err != nil {
+			logrus.WithError(err).Info("rendertron is 0")
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
@@ -70,6 +71,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		_, err = rw.Write(buf.Bytes())
 		if err != nil {
+			logrus.WithError(err).Info("rendertron is 1")
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
