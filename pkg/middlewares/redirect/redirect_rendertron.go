@@ -1,7 +1,6 @@
 package redirect
 
 import (
-	"bytes"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -21,7 +20,7 @@ const (
 	typeRendertronName = "RedirectRendertron"
 )
 
-var crawlers = regexp.MustCompile("baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|googlebot|bingbot|discordbot|whatsapp")
+var crawlers = regexp.MustCompile("baiduspider|Twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|googlebot|bingbot|discordbot|whatsapp")
 var exceptions = regexp.MustCompile("\\.(js|css|xml|less|png|jpg|jpeg|gif|pdf|doc|txt|ico|rss|zip|mp3|rar|exe|wmv|doc|avi|ppt|mpg|mpeg|tif|wav|mov|psd|ai|xls|mp4|m4a|swf|dat|dmg|iso|flv|m4v|torrent|ttf|woff|svg|eot)$")
 
 type RedirectRendertron struct {
@@ -52,6 +51,7 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	rawUrl := rawURL(req)
 	logrus.
 		WithField("user-agent", userAgent).
+		WithField("raw-url", rawUrl).
 		WithField("match-user-agent", crawlers.MatchString(userAgent)).
 		WithField("is-not-exception", !exceptions.MatchString(rawUrl)).
 		Info("rendertron is alive")
@@ -60,17 +60,18 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		rendertronUrl := "http://rendertron:3000/render/http://" + r.config.ServiceName + req.RequestURI
 
-		buf := bytes.NewBufferString("")
-		request, err := http.NewRequest("GET", rendertronUrl, buf)
+		resp, err := http.Get(rendertronUrl)
 
 		if err != nil {
 			logrus.WithError(err).Info("rendertron is 0")
 			r.errHandler.ServeHTTP(rw, req, err)
 			return
 		}
-		defer request.Body.Close()
+
+		defer resp.Body.Close()
 
 		b, err := ioutil.ReadAll(req.Body)
+
 		if err != nil {
 			logrus.WithError(err).Info("rendertron is 1")
 			r.errHandler.ServeHTTP(rw, req, err)
@@ -79,8 +80,10 @@ func (r *RedirectRendertron) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		logrus.
 			WithField("middleware", r.name).
+			WithField("response-status", resp.Status).
 			WithField("response-body", string(b)).
 			WithField("user-agent", userAgent).Info(rendertronUrl)
+
 		_, err = rw.Write(b)
 
 		if err != nil {
